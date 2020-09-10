@@ -1,28 +1,3 @@
-### Main VPC ###
-data "aws_vpc" "main_vpc" {
-  cidr_block           = var.CIDR_BLOCK_16
-  tags = {
-    Name = "main_vpc"
-  }
-  depends_on = [var.vpc]
-}
-
-### Public Subnets ###
-data "aws_subnet" "main_subnet_public_id_1" {
-  vpc_id = data.aws_vpc.main_vpc.id
-  tags = {
-    Name = "MainSubnetPubicId_1"
-  }
-}
-
-### Public Subnets_2 ###
-data "aws_subnet" "main_subnet_public_id_2" {
-  vpc_id = data.aws_vpc.main_vpc.id
-  tags = {
-    Name = "MainSubnetPubicId_2"
-  }
-}
-
 ### Instances ###
 resource "aws_instance" "instances" {
   ami           = lookup(var.AMIS,var.AWS_REGION)
@@ -31,7 +6,7 @@ resource "aws_instance" "instances" {
 
   vpc_security_group_ids = [aws_security_group.allow_ssh.id]
 
-  subnet_id = data.aws_subnet.main_subnet_public_id_1.id
+  subnet_id = var.SUBNET_PUBLIC_1
 
   key_name = aws_key_pair.mykey.key_name
 
@@ -44,7 +19,7 @@ resource "aws_instance" "instances" {
 resource "aws_security_group" "allow_ssh" {
   name        = "allow_ssh-${var.ENVIRONMENT}"
   description = "Allow SSH inbound traffic"
-  vpc_id      = data.aws_vpc.main_vpc.id
+  vpc_id      = var.VPC_ID
 
   ingress {
     from_port   = 22
@@ -101,7 +76,7 @@ resource "aws_launch_configuration" "autoscale_instances" {
 
   instance_type   = var.INSTANCE_TYPE
 
-  #subnet_id       = data.aws_subnet.main_subnet_public_id_1.id
+  #subnet_id       = var.SUBNET_PUBLIC_1
 
   security_groups  = [aws_security_group.allow_ssh.id]
 
@@ -126,14 +101,14 @@ resource "aws_autoscaling_group" "auto_scale_grp" {
   desired_capacity          = 2
   force_delete              = true
   launch_configuration      = aws_launch_configuration.autoscale_instances.name
-  vpc_zone_identifier       = [data.aws_subnet.main_subnet_public_id_1.id, data.aws_subnet.main_subnet_public_id_2.id]
+  vpc_zone_identifier       = [var.SUBNET_PUBLIC_1, var.SUBNET_PUBLIC_2]
 
 }
 
 ### Elastic Load Balancers ###
 resource "aws_elb" "elb" {
   name               = "elb"
-  subnets            = [data.aws_subnet.main_subnet_public_id_1.id,data.aws_subnet.main_subnet_public_id_2.id]
+  subnets            = [var.SUBNET_PUBLIC_1, var.SUBNET_PUBLIC_2]
   security_groups    = [aws_security_group.load-balancer.id]
 
   listener {
@@ -165,7 +140,7 @@ resource "aws_elb" "elb" {
 resource "aws_security_group" "load-balancer" {
   name        = "load-balancer"
   description = "Security group for load balancer"
-  vpc_id      = data.aws_vpc.main_vpc.id
+  vpc_id      =  var.VPC_ID
 
 
   ingress {
@@ -190,7 +165,7 @@ resource "aws_security_group" "load-balancer" {
 ### Subnet for maria_db ###
 resource "aws_db_subnet_group" "maria_db_subnet" {
   name       = "maria_db_subnet"
-  subnet_ids = [data.aws_subnet.main_subnet_public_id_1.id, data.aws_subnet.main_subnet_public_id_2.id]
+  subnet_ids = [var.SUBNET_PUBLIC_1, var.SUBNET_PUBLIC_2]
 
   tags = {
     Name = "maria_db_subnet"
@@ -228,7 +203,7 @@ resource "aws_db_instance" "maria_db" {
 resource "aws_security_group" "allow_maria_db" {
   name        = "allow_maria_db"
   description = "Allow Maria DB"
-  vpc_id      = data.aws_vpc.main_vpc.id
+  vpc_id      =  var.VPC_ID
 
   ingress {
     description = "mariadb from VPC"

@@ -1,3 +1,3 @@
-variable "auto_scale_grp"{
+variable "AUTOSCALE_GRP"{
 
 }

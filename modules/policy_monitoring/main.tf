@@ -4,7 +4,7 @@ resource "aws_autoscaling_policy" "scale_up" {
   scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
-  autoscaling_group_name = var.auto_scale_grp
+  autoscaling_group_name = var.AUTOSCALE_GRP
   policy_type            = "SimpleScaling"
 }
 
@@ -19,7 +19,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_up_alarm" {
   statistic                 = "Average"
   threshold                 = "30"
   dimensions = {
-    AutoScalingGroupName = var.auto_scale_grp
+    AutoScalingGroupName = var.AUTOSCALE_GRP
   }
 
   alarm_description = "This metric monitors ec2 when cpu utilization goes up"
@@ -32,7 +32,7 @@ resource "aws_autoscaling_policy" "scale_down" {
   scaling_adjustment     = -1
   adjustment_type        = "ChangeInCapacity"
   cooldown               = 300
-  autoscaling_group_name = var.auto_scale_grp
+  autoscaling_group_name = var.AUTOSCALE_GRP
   policy_type            = "SimpleScaling"
 }
 
@@ -47,7 +47,7 @@ resource "aws_cloudwatch_metric_alarm" "scale_down_alarm" {
   statistic                 = "Average"
   threshold                 = "5"
   dimensions = {
-    AutoScalingGroupName = var.auto_scale_grp
+    AutoScalingGroupName = var.AUTOSCALE_GRP
   }
 
   alarm_description = "This metric monitors ec2 when cpu utilization goes down"
@@ -61,8 +61,8 @@ resource "aws_sns_topic" "inventory-sns" {
 }
 
 resource "aws_autoscaling_notification" "inventory-notify" {
-  group_names = [var.auto_scale_grp]
-  topic_arn     = "${aws_sns_topic.inventory-sns.arn}"
+  group_names = [var.AUTOSCALE_GRP]
+  topic_arn     = aws_sns_topic.inventory-sns.arn
   notifications  = [
     "autoscaling:EC2_INSTANCE_LAUNCH",
     "autoscaling:EC2_INSTANCE_TERMINATE",
