@@ -36,7 +36,7 @@ variable AMIS {
 }
 
 variable RDS_PASSWORD{
-  default = "12345@123"
+  default = "Naveen@12345"
 }
 
 variable INSTANCE_DEVICE_NAME{
