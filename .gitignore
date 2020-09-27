@@ -2,6 +2,7 @@
 **/.terraform/*
 
 # .tfstate files
+output.terraform
 *.tfstate
 *.tfstate.*
 *mykey*
