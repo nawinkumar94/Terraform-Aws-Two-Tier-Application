@@ -28,7 +28,7 @@ variable AMIS {
 }
 
 variable RDS_PASSWORD{
-  default = "Naveen@12345"
+  default = "MySqlRdb12345"
 }
 
 variable INSTANCE_DEVICE_NAME{
